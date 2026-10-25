@@ -1,9 +1,7 @@
 from contextlib import asynccontextmanager
-import hmac
 from typing import Any
 
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.security import APIKeyHeader
+from fastapi import FastAPI, HTTPException, Request
 
 from app.client import (
     PortalConfigurationError,
@@ -43,21 +41,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ),
         lifespan=lifespan,
     )
-    api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
-
-    def require_api_key(api_key: str | None = Depends(api_key_header)) -> None:
-        if not config.api_key:
-            raise HTTPException(
-                status_code=503,
-                detail="API access is not configured. Set the API_KEY environment variable.",
-            )
-        if api_key is None or not hmac.compare_digest(api_key, config.api_key):
-            raise HTTPException(
-                status_code=401,
-                detail="A valid API key is required.",
-                headers={"WWW-Authenticate": "ApiKey"},
-            )
-
     def portal(request: Request) -> UrjaPortalClient:
         return request.app.state.portal_client
 
@@ -77,11 +60,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "/api/v1/auth/login",
         response_model=LoginResponse,
         tags=["auth"],
-        dependencies=[Depends(require_api_key)],
         responses={
-            401: {"description": "Missing or invalid API key"},
             502: {"description": "Portal login failed"},
-            503: {"description": "API key is not configured"},
+            503: {"description": "Portal credentials are not configured"},
         },
     )
     def login(payload: LoginRequest, request: Request) -> LoginResponse:
@@ -94,11 +75,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "/api/v1/meters",
         response_model=RecordsResponse,
         tags=["meters"],
-        dependencies=[Depends(require_api_key)],
         responses={
-            401: {"description": "Missing or invalid API key"},
             502: {"description": "Portal returned an error or unexpected data"},
-            503: {"description": "API key or portal credentials are not configured"},
+            503: {"description": "Portal credentials are not configured"},
         },
     )
     def meters(request: Request) -> RecordsResponse:
@@ -109,11 +88,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "/api/v1/meters/{meter_id}",
         response_model=MeterResponse,
         tags=["meters"],
-        dependencies=[Depends(require_api_key)],
         responses={
-            401: {"description": "Missing or invalid API key"},
             502: {"description": "Portal returned an error or unexpected data"},
-            503: {"description": "API key or portal credentials are not configured"},
+            503: {"description": "Portal credentials are not configured"},
         },
     )
     def meter(meter_id: str, request: Request) -> MeterResponse:
@@ -124,11 +101,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "/api/v1/meters/{meter_id}/consumption",
         response_model=ConsumptionResponse,
         tags=["meters"],
-        dependencies=[Depends(require_api_key)],
         responses={
-            401: {"description": "Missing or invalid API key"},
             502: {"description": "Portal returned an error or unexpected data"},
-            503: {"description": "API key or portal credentials are not configured"},
+            503: {"description": "Portal credentials are not configured"},
         },
     )
     def consumption(meter_id: str, request: Request) -> ConsumptionResponse:
@@ -141,11 +116,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         "/api/v1/hierarchy",
         response_model=HierarchyResponse,
         tags=["hierarchy"],
-        dependencies=[Depends(require_api_key)],
         responses={
-            401: {"description": "Missing or invalid API key"},
             502: {"description": "Portal returned an error"},
-            503: {"description": "API key or portal credentials are not configured"},
+            503: {"description": "Portal credentials are not configured"},
         },
     )
     def hierarchy(request: Request) -> HierarchyResponse:

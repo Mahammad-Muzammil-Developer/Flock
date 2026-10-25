@@ -55,14 +55,11 @@
               }
             }
           },
-          "401": {
-            "description": "Missing or invalid API key"
-          },
           "502": {
             "description": "Portal login failed"
           },
           "503": {
-            "description": "API key is not configured"
+            "description": "Portal credentials are not configured"
           },
           "422": {
             "description": "Validation Error",
@@ -74,12 +71,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "APIKeyHeader": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/meters": {
@@ -100,21 +92,13 @@
               }
             }
           },
-          "401": {
-            "description": "Missing or invalid API key"
-          },
           "502": {
             "description": "Portal returned an error or unexpected data"
           },
           "503": {
-            "description": "API key or portal credentials are not configured"
+            "description": "Portal credentials are not configured"
           }
-        },
-        "security": [
-          {
-            "APIKeyHeader": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/meters/{meter_id}": {
@@ -124,11 +108,6 @@
         ],
         "summary": "Meter",
         "operationId": "meter_api_v1_meters__meter_id__get",
-        "security": [
-          {
-            "APIKeyHeader": []
-          }
-        ],
         "parameters": [
           {
             "name": "meter_id",
@@ -151,14 +130,11 @@
               }
             }
           },
-          "401": {
-            "description": "Missing or invalid API key"
-          },
           "502": {
             "description": "Portal returned an error or unexpected data"
           },
           "503": {
-            "description": "API key or portal credentials are not configured"
+            "description": "Portal credentials are not configured"
           },
           "422": {
             "description": "Validation Error",
@@ -180,11 +156,6 @@
         ],
         "summary": "Consumption",
         "operationId": "consumption_api_v1_meters__meter_id__consumption_get",
-        "security": [
-          {
-            "APIKeyHeader": []
-          }
-        ],
         "parameters": [
           {
             "name": "meter_id",
@@ -207,14 +178,11 @@
               }
             }
           },
-          "401": {
-            "description": "Missing or invalid API key"
-          },
           "502": {
             "description": "Portal returned an error or unexpected data"
           },
           "503": {
-            "description": "API key or portal credentials are not configured"
+            "description": "Portal credentials are not configured"
           },
           "422": {
             "description": "Validation Error",
@@ -247,21 +215,13 @@
               }
             }
           },
-          "401": {
-            "description": "Missing or invalid API key"
-          },
           "502": {
             "description": "Portal returned an error"
           },
           "503": {
-            "description": "API key or portal credentials are not configured"
+            "description": "Portal credentials are not configured"
           }
-        },
-        "security": [
-          {
-            "APIKeyHeader": []
-          }
-        ]
+        }
       }
     }
   },
@@ -430,13 +390,6 @@
           "type"
         ],
         "title": "ValidationError"
-      }
-    },
-    "securitySchemes": {
-      "APIKeyHeader": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-API-Key"
       }
     }
   }

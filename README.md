@@ -12,7 +12,6 @@ Portal behavior is not assumed to be verified; see [PROTOCOL.md](./PROTOCOL.md).
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-$env:API_KEY = "a-long-random-secret"
 $env:URJA_USERNAME = "your-authorized-portal-username"
 $env:URJA_PASSWORD = "your-authorized-portal-password"
 python -m uvicorn app.main:app --reload
@@ -27,11 +26,12 @@ after changing routes with:
 python -c "import json; from app.main import app; open('openapi.json','w',encoding='utf-8').write(json.dumps(app.openapi(), indent=2) + '\n')"
 ```
 
-The API will start without portal credentials so `/health` and documentation
-remain available. Every `/api/v1` route requires the `X-API-Key` header.
-Without an `API_KEY` configured, those routes fail closed with `503`; a missing
-or invalid key returns `401`. Never commit API keys, portal credentials, or a
-`.env` file.
+The API starts without portal credentials so `/health` and documentation remain
+available. Portal operations return `503` until `URJA_USERNAME` and
+`URJA_PASSWORD` are configured. API routes do not require an API key. This means
+anyone who can reach a public deployment can request meter and hierarchy data;
+deploy only if that exposure is acceptable. Never commit portal credentials or
+a `.env` file.
 
 ## API
 
@@ -48,12 +48,10 @@ Example requests:
 ```powershell
 curl.exe http://127.0.0.1:8000/health
 curl.exe -X POST http://127.0.0.1:8000/api/v1/auth/login `
-  -H "X-API-Key: a-long-random-secret" `
   -H "Content-Type: application/json" `
   -d '{\"username\":\"your-authorized-portal-username\",\"password\":\"your-password\"}'
-curl.exe http://127.0.0.1:8000/api/v1/meters -H "X-API-Key: a-long-random-secret"
-curl.exe http://127.0.0.1:8000/api/v1/meters/METER-001/consumption `
-  -H "X-API-Key: a-long-random-secret"
+curl.exe http://127.0.0.1:8000/api/v1/meters
+curl.exe http://127.0.0.1:8000/api/v1/meters/METER-001/consumption
 ```
 
 The login endpoint establishes the shared portal session. Other portal routes
@@ -65,7 +63,6 @@ it is not a multi-tenant user-session store.
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `API_KEY` | unset | Required key for every `/api/v1` endpoint; send as `X-API-Key` |
 | `URJA_BASE_URL` | `https://urja-ops.flockenergy.tech` | Portal origin |
 | `URJA_USERNAME` / `URJA_PASSWORD` | unset | Authorized portal credentials |
 | `URJA_LOGIN_PATH` | `/login` | Login route |
@@ -90,23 +87,20 @@ publish it:
 2. In Render, choose **New** > **Blueprint**, connect that repository, and
    deploy the `render.yaml` blueprint.
 3. In the Blueprint prompts or the service's **Environment** settings, set
-   `API_KEY` to a long random secret and set `URJA_USERNAME` and
-   `URJA_PASSWORD` to authorized portal credentials. Never put secrets in
-   `render.yaml` or Git.
+   `URJA_USERNAME` and `URJA_PASSWORD` to authorized portal credentials. Never
+   put secrets in `render.yaml` or Git.
 4. After deployment, use the Render service URL with `/health` and `/docs`.
-   Include `X-API-Key` on all `/api/v1` calls.
 
-Render may require you to supply values for the `sync: false` secrets. Keep the
-API key in a password manager and share it only with authorized API clients.
-The `/health` endpoint intentionally remains public for the hosting platform's
-health check; it reveals only service availability.
+Render may require you to supply values for the `sync: false` secrets. The
+`/health` endpoint intentionally remains public for the hosting platform's
+health check. **All `/api/v1` endpoints are also public and do not require an
+API key.** Anyone with the service URL can query the portal data available to
+the configured account. Do not deploy publicly unless that data exposure is
+acceptable.
 
 ## Design choices and limitations
 
 - FastAPI supplies validation and a generated OpenAPI schema.
-- API routes require a shared API key and compare it in constant time. This is
-  a basic access gate, not per-user authorization, key rotation, or rate
-  limiting.
 - A persistent `httpx.Client` retains cookies; a failed authenticated request
   triggers one re-login and retry.
 - The adapter handles JSON and basic HTML tables. It does not infer numeric
@@ -114,9 +108,9 @@ health check; it reveals only service availability.
 - Upstream route names, login form behavior, CSRF handling, and response
   structures are not known until inspected. No live portal test is represented
   as having passed.
-- This example has one shared cookie session, no persistence, and no rate
-  limiting. Restrict key distribution and add stronger identity/access controls
-  before a broad production rollout.
+- This example has one shared cookie session, no persistence, no API
+  authentication, and no rate limiting. It is not suitable for public exposure
+  when the configured portal account can access sensitive data.
 
 ## Validation
 

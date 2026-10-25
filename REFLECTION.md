@@ -42,7 +42,7 @@ Numbers and dates are preserved as strings until their meaning is verified.
 After authorized protocol discovery, document confirmed requests and edge cases,
 implement any CSRF or token exchange, add fixtures from sanitized responses,
 validate real response schemas and units, and test an authorized integration
-environment. Before production, extend the shared API key to per-caller
+environment. Before production, restore access control with per-caller
 identity, add session isolation and rate limiting, and add structured
 observability with secret redaction and deployment configuration suitable for
 multiple workers.

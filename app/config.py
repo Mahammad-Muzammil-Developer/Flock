@@ -15,7 +15,6 @@ class Settings:
     username_field: str = "username"
     password_field: str = "password"
     request_timeout: float = 10.0
-    api_key: str = ""
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -37,5 +36,4 @@ class Settings:
             username_field=os.getenv("URJA_USERNAME_FIELD", "username"),
             password_field=os.getenv("URJA_PASSWORD_FIELD", "password"),
             request_timeout=float(os.getenv("URJA_REQUEST_TIMEOUT", "10")),
-            api_key=os.getenv("API_KEY", ""),
         )
