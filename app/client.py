@@ -80,7 +80,7 @@ class UrjaPortalClient:
         )
         self._owns_client = client is None
         self._authenticated = False
-        self._username: str | None = settings.portal_username or None
+        self._email: str | None = settings.portal_email or None
         self._password: str | None = settings.portal_password or None
         self._lock = threading.RLock()
 
@@ -88,13 +88,13 @@ class UrjaPortalClient:
         if self._owns_client:
             self._client.close()
 
-    def login(self, username: str | None = None, password: str | None = None) -> bool:
+    def login(self, email: str | None = None, password: str | None = None) -> bool:
         with self._lock:
-            user = username if username is not None else self._username
+            login_email = email if email is not None else self._email
             secret = password if password is not None else self._password
-            if not user or not secret:
+            if not login_email or not secret:
                 raise PortalConfigurationError(
-                    "Set URJA_USERNAME and URJA_PASSWORD before using portal endpoints."
+                    "Set URJA_EMAIL and URJA_PASSWORD before using portal endpoints."
                 )
 
             login_url = self._url(self.settings.login_path)
@@ -102,8 +102,8 @@ class UrjaPortalClient:
                 response = self._client.post(
                     login_url,
                     data={
-                        self.settings.username_field: user,
-                        self.settings.password_field: secret,
+                        "email": login_email,
+                        "password": secret,
                     },
                 )
             except httpx.HTTPError as exc:
@@ -117,7 +117,7 @@ class UrjaPortalClient:
                 raise PortalError(
                     "The portal redirected back to login; credentials may be invalid."
                 )
-            self._username = user
+            self._email = login_email
             self._password = secret
             self._authenticated = True
             return True

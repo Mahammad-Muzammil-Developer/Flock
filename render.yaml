@@ -7,7 +7,7 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
-      - key: URJA_USERNAME
+      - key: URJA_EMAIL
         sync: false
       - key: URJA_PASSWORD
         sync: false

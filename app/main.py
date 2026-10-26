@@ -67,7 +67,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     def login(payload: LoginRequest, request: Request) -> LoginResponse:
         authenticated = call_upstream(
-            lambda: portal(request).login(payload.username, payload.password)
+            lambda: portal(request).login(payload.email, payload.password)
         )
         return LoginResponse(authenticated=authenticated)
 

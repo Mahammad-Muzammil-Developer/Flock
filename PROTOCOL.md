@@ -2,17 +2,16 @@
 
 ## Verification status
 
-No authenticated browser or network inspection of the live portal was performed
-for this implementation. The routes and login form below are **configurable
-starting assumptions taken from the assignment examples**, not confirmed
-observations. Verify them with an authorized account and record changes here
-before relying on this adapter in production.
+Browser Network information confirmed the login form field names and a
+successful login response. Other routes and response formats remain
+**configurable starting assumptions taken from the assignment examples** and
+should be verified with an authorized account before production use.
 
-## Current assumptions (unverified)
+## Current protocol details
 
-| Purpose | Method | Default path | Assumed request/response |
+| Purpose | Method | Default path | Request/response |
 | --- | --- | --- | --- |
-| Login | POST | `/login` | Form fields `username` and `password`; an HTTP success response establishes a cookie session |
+| Login | POST | `/login` | Form fields `email` and `password` (confirmed); a successful response sets a session cookie. |
 | Meter list | GET | `/meters` | JSON list/object or an HTML table |
 | Meter detail | GET | `/meters/{meter_id}` | JSON object or an HTML table |
 | Consumption | GET | `/meters/{meter_id}/consumption` | JSON list/object or an HTML table |
@@ -20,8 +19,8 @@ before relying on this adapter in production.
 
 The client retains cookies in a shared `httpx.Client`, detects 401/403 and
 redirects to the configured login path, and retries one time after logging in.
-It does not claim to know whether the portal requires CSRF tokens, a JSON login
-body, additional headers, or different route names.
+The login path is still an assumption, and whether the portal requires CSRF
+tokens or additional headers has not been verified.
 
 ## Parsing and normalization
 

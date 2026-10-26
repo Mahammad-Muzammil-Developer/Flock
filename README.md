@@ -12,7 +12,7 @@ Portal behavior is not assumed to be verified; see [PROTOCOL.md](./PROTOCOL.md).
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-$env:URJA_USERNAME = "your-authorized-portal-username"
+$env:URJA_EMAIL = "your-authorized-portal-email"
 $env:URJA_PASSWORD = "your-authorized-portal-password"
 python -m uvicorn app.main:app --reload
 ```
@@ -27,7 +27,7 @@ python -c "import json; from app.main import app; open('openapi.json','w',encodi
 ```
 
 The API starts without portal credentials so `/health` and documentation remain
-available. Portal operations return `503` until `URJA_USERNAME` and
+available. Portal operations return `503` until `URJA_EMAIL` and
 `URJA_PASSWORD` are configured. API routes do not require an API key. This means
 anyone who can reach a public deployment can request meter and hierarchy data;
 deploy only if that exposure is acceptable. Never commit portal credentials or
@@ -36,7 +36,7 @@ a `.env` file.
 ## API
 
 - `GET /health`
-- `POST /api/v1/auth/login` with `{"username":"...","password":"..."}`
+- `POST /api/v1/auth/login` with `{"email":"...","password":"..."}`
 - `GET /api/v1/meters` returns `{"items":[...]}`
 - `GET /api/v1/meters/{meter_id}` returns `{"meter":{...}}`
 - `GET /api/v1/meters/{meter_id}/consumption` returns
@@ -49,7 +49,7 @@ Example requests:
 curl.exe http://127.0.0.1:8000/health
 curl.exe -X POST http://127.0.0.1:8000/api/v1/auth/login `
   -H "Content-Type: application/json" `
-  -d '{\"username\":\"your-authorized-portal-username\",\"password\":\"your-password\"}'
+  -d '{\"email\":\"your-authorized-portal-email\",\"password\":\"your-password\"}'
 curl.exe http://127.0.0.1:8000/api/v1/meters
 curl.exe http://127.0.0.1:8000/api/v1/meters/METER-001/consumption
 ```
@@ -64,18 +64,18 @@ it is not a multi-tenant user-session store.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `URJA_BASE_URL` | `https://urja-ops.flockenergy.tech` | Portal origin |
-| `URJA_USERNAME` / `URJA_PASSWORD` | unset | Authorized portal credentials |
+| `URJA_EMAIL` / `URJA_PASSWORD` | unset | Authorized portal credentials |
 | `URJA_LOGIN_PATH` | `/login` | Login route |
 | `URJA_METERS_PATH` | `/meters` | Meter list route |
 | `URJA_METER_DETAIL_PATH` | `/meters/{meter_id}` | Detail route template |
 | `URJA_CONSUMPTION_PATH` | `/meters/{meter_id}/consumption` | Consumption route template |
 | `URJA_HIERARCHY_PATH` | `/hierarchy` | Hierarchy route |
-| `URJA_USERNAME_FIELD` / `URJA_PASSWORD_FIELD` | `username` / `password` | Login form field names |
 | `URJA_REQUEST_TIMEOUT` | `10` | Upstream timeout in seconds |
 
-These default paths and form fields are unverified. Set configuration to match
-observed authorized portal traffic; the protocol document describes the current
-assumptions.
+The portal login form field names were confirmed from browser Network
+information. The default paths are still assumptions; configure them to match
+observed authorized portal traffic. The API login request and the upstream
+portal form both use `email` and `password`.
 
 ## Deploy to Render
 
@@ -87,8 +87,8 @@ publish it:
 2. In Render, choose **New** > **Blueprint**, connect that repository, and
    deploy the `render.yaml` blueprint.
 3. In the Blueprint prompts or the service's **Environment** settings, set
-   `URJA_USERNAME` and `URJA_PASSWORD` to authorized portal credentials. Never
-   put secrets in `render.yaml` or Git.
+   `URJA_EMAIL` and `URJA_PASSWORD` to authorized portal credentials. Never put
+   secrets in `render.yaml` or Git.
 4. After deployment, use the Render service URL with `/health` and `/docs`.
 
 Render may require you to supply values for the `sync: false` secrets. The

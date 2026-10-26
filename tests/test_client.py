@@ -1,4 +1,5 @@
 import unittest
+from urllib.parse import parse_qs
 
 import httpx
 
@@ -45,7 +46,7 @@ class ClientParsingTests(unittest.TestCase):
         portal = UrjaPortalClient(
             Settings(
                 portal_base_url="https://portal.test",
-                portal_username="operator",
+                portal_email="operator@example.test",
                 portal_password="secret",
             ),
             client=client,
@@ -61,6 +62,30 @@ class ClientParsingTests(unittest.TestCase):
 
 
 class ClientSessionTests(unittest.TestCase):
+    def test_login_uses_portal_email_form_field(self):
+        login_payload = {}
+
+        def handler(request):
+            login_payload.update(parse_qs(request.content.decode()))
+            return httpx.Response(200, request=request)
+
+        client = httpx.Client(transport=httpx.MockTransport(handler))
+        portal = UrjaPortalClient(
+            Settings(portal_base_url="https://portal.test"), client=client
+        )
+        try:
+            self.assertTrue(portal.login("operator@example.test", "test-password"))
+            self.assertEqual(
+                login_payload,
+                {
+                    "email": ["operator@example.test"],
+                    "password": ["test-password"],
+                },
+            )
+        finally:
+            portal.close()
+            client.close()
+
     def test_reauthenticates_once_after_unauthorized_response(self):
         calls = []
 
@@ -81,7 +106,7 @@ class ClientSessionTests(unittest.TestCase):
         client = httpx.Client(transport=transport, follow_redirects=False)
         settings = Settings(
             portal_base_url="https://portal.test",
-            portal_username="operator",
+            portal_email="operator@example.test",
             portal_password="secret",
         )
         portal = UrjaPortalClient(settings, client=client)
@@ -118,7 +143,7 @@ class ClientSessionTests(unittest.TestCase):
             Settings(portal_base_url="https://portal.test"), client=client
         )
         try:
-            portal.login("operator", "secret")
+            portal.login("operator@example.test", "secret")
             self.assertEqual(portal.get_meters(), [])
             self.assertEqual(
                 [path for _, path in calls],

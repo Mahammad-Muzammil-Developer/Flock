@@ -289,10 +289,10 @@
       },
       "LoginRequest": {
         "properties": {
-          "username": {
+          "email": {
             "type": "string",
             "minLength": 1,
-            "title": "Username"
+            "title": "Email"
           },
           "password": {
             "type": "string",
@@ -302,7 +302,7 @@
         },
         "type": "object",
         "required": [
-          "username",
+          "email",
           "password"
         ],
         "title": "LoginRequest"
